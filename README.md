@@ -1,55 +1,54 @@
-🔐 LTSpice Analog Entropy Override Controller
+# Analog Entropy Override Controller (LTSpice)
 
-**Hybrid analog–digital FSM override circuit** for real-time entropy-triggered pipeline control — modeled in LTSpice.
+This module simulates a real-time hazard management circuit using entropy, noise, and ML-based trigger signals to issue FLUSH or LOCK signals during pipeline operation.
 
-## 🧠 Purpose
-This circuit implements **analog logic gates**, comparators, and pulse generation to simulate a **chaos-aware hazard response unit**. It integrates entropy signals, transient noise, and machine learning (ML) trigger cues to drive three control outcomes: `LOCK_OUT`, `FLUSH_OUT`, and internal transition behavior.
+## 🧠 Motivation
 
-## ⚙️ Features
+Inspired by hybrid AI–hardware pipeline control models, this analog overlay introduces a low-latency entropy override path, simulating FSM behavior with physical comparators and logic gates.
 
-| Subsystem          | Function                                                                 |
-|--------------------|--------------------------------------------------------------------------|
-| `V_entropy`        | Models entropy signal — filtered via RC and fed to comparator            |
-| `LOCK_OUT`         | Asserted when entropy is high **AND** ML trigger is high                 |
-| `V_noise`          | Simulates high-frequency transient noise                                 |
-| `FLUSH_OUT`        | Issued as a pulse after comparator detects noise threshold crossing      |
-| ML Trigger Logic   | Combines `ml_trigger` with entropy via analog NAND to issue LOCK signal  |
-| Inverter & NAND    | Logic-level conversions for interfacing analog comparator outputs        |
+## ⚙️ Components
 
-## 🔍 Components Breakdown
+- **Entropy Signal (V_entropy):** Modeled via PWL ramp, represents system disorder.
+- **ML Trigger (V_ml_trigger):** Emulates neural prediction override (e.g., `ML=11`).
+- **Noise Source (V_noise):** Injects signal ambiguity into the control system.
+- **Comparators (OP07):** For entropy and noise evaluation.
+- **NAND + Inverters:** Combinational override logic for `LOCK_OUT` and `FLUSH_OUT`.
 
-- **OP07 Comparators**: Precision analog thresholds
-- **RC Filters & Diodes**: Smooth + shape transient responses
-- **CD4007 CMOS Inverters**: Digital pulse cleanup
-- **NAND Logic Chain**: Ensures coordinated hazard triggering
-- **PWL Sources**: Testbench inputs for entropy, noise, and ML-trigger simulation
+## 🔁 Circuit Behavior
 
-## 🧪 Expected Behavior
+| Input | Description |
+|-------|-------------|
+| `V_entropy` | Linearly rising entropy (0 → 5V) |
+| `V_ml_trigger` | ML prediction override (0 → 1V at 0.5ms) |
+| `V_noise` | Ambient signal perturbation (random or flat) |
 
-- `LOCK_OUT` triggers when:
-  - `V_entropy > 3.3V` **AND**
-  - `ml_trigger = 1V`
-- `FLUSH_OUT` emits a short pulse when:
-  - `V_noise > 2V` triggers a comparator edge
+| Output | Description |
+|--------|-------------|
+| `LOCK_OUT` | Activates when both entropy and ML trigger pass threshold |
+| `FLUSH_OUT` | Activates under moderate entropy or early hazard detection |
 
-> Full simulation expected to visualize LOCK escalation, FLUSH response time, and logic path cleanliness.
+## 📈 Simulation Output
 
-## 📂 Files Included
+![Simulation Graph](./waveform_output.png)
 
-- `3_input_analog_entropy_override.asc`: LTSpice simulation circuit
-- `LTSpice Analog Entropy Override Controller Write-Up & Expected Results.docx`: System theory + expected waveforms
-- Simulation screenshots (.png): Included for waveform clarity
+- `LOCK_OUT` triggers post-entropy ramp when ML trigger is active.
+- `FLUSH_OUT` activates slightly earlier, confirming cascade override logic.
 
-## 🧭 Future Directions
+## 📂 Files
 
-- FPGA deployment of digital override mirror
-- Analog-digital hybrid Verilog module
-- Real-time data acquisition integration
-- Entropy-controlled DAC output for testbench feedback
+| File | Description |
+|------|-------------|
+| `3_input_analog_entropy_override.asc` | Main LTSpice circuit schematic |
+| `README.md` | Project summary |
+| `LTSpice_Analog_Override_Report.docx` | Full write-up with expected behavior |
+| `waveform_output.png` | Simulation waveform image |
 
-## ✍️ Author
+## 🧪 Usage
 
-**Joshua Carter**  
-Engineering Student, RMIT University – Melbourne, Australia  
-🔗 [GitHub Profile](https://github.com/joshuathomascarter)  
-📧 joshtcarter0710@gmail.com
+Open the `.asc` file in LTSpice and run a transient analysis (1ms) to observe `FLUSH_OUT` and `LOCK_OUT` response behavior based on entropy and ML trigger thresholds.
+
+## 🚀 Relevance
+
+This simulation prototype complements our Verilog-based FSM pipeline controller and provides analog fallback logic for catastrophic state recovery — ideal for hardware-augmented AI systems.
+
+
