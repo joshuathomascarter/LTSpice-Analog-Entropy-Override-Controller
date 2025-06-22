@@ -1,0 +1,1 @@
+# LTSpice-Analog-Entropy-Override-Controller
