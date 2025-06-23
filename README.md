@@ -1,54 +1,87 @@
-# Analog Entropy Override Controller (LTSpice)
+# ARCHON Hybrid Entropy-Aware Control System (v2.3)
 
-This module simulates a real-time hazard management circuit using entropy, noise, and ML-based trigger signals to issue FLUSH or LOCK signals during pipeline operation.
+This module (`fsm_entropy_overlay.v`) implements a **multi-priority, analog-digital control unit** for CPU pipeline hazard management. It integrates:
 
-## 🧠 Motivation
+- 🧠 **Machine Learning Predictions**: Guides control flow with predictions (OK, STALL, FLUSH, LOCK).
+- 🔀 **Entropy Score Thresholding**: Triggers control actions based on internal digital entropy (`internal_entropy_score`).
+- 🔌 **Analog Override System (LTSpice)**: Feeds in **real-time analog signals** for entropy-based override classification.
 
-Inspired by hybrid AI–hardware pipeline control models, this analog overlay introduces a low-latency entropy override path, simulating FSM behavior with physical comparators and logic gates.
+---
 
-## ⚙️ Components
+## 🔁 FSM Overview
 
-- **Entropy Signal (V_entropy):** Modeled via PWL ramp, represents system disorder.
-- **ML Trigger (V_ml_trigger):** Emulates neural prediction override (e.g., `ML=11`).
-- **Noise Source (V_noise):** Injects signal ambiguity into the control system.
-- **Comparators (OP07):** For entropy and noise evaluation.
-- **NAND + Inverters:** Combinational override logic for `LOCK_OUT` and `FLUSH_OUT`.
+### States:
+- `00`: STATE_OK — Normal operation.
+- `01`: STATE_STALL — Pipeline temporarily halted.
+- `10`: STATE_FLUSH — Pipeline reset to avoid corrupted instruction propagation.
+- `11`: STATE_LOCK — System-critical failure state; must be externally reset.
 
-## 🔁 Circuit Behavior
+### Inputs:
+- `ml_predicted_action [1:0]` — ML-based hazard classification.
+- `internal_entropy_score [7:0]` — Calculated entropy score from QED.
+- `internal_hazard_flag` — Hazard detection flag from digital circuit logic.
+- `analog_lock_override` — Direct LOCK signal from analog controller.
+- `analog_flush_override` — Direct FLUSH signal from analog controller.
+- `analog_entropy_severity [1:0]` — Encoded entropy tier from LTSpice analog system:
 
-| Input | Description |
-|-------|-------------|
-| `V_entropy` | Linearly rising entropy (0 → 5V) |
-| `V_ml_trigger` | ML prediction override (0 → 1V at 0.5ms) |
-| `V_noise` | Ambient signal perturbation (random or flat) |
+| Value | Meaning               |
+|-------|------------------------|
+| 00    | Normal                |
+| 01    | Elevated Entropy → STALL |
+| 10    | Critical Entropy → FLUSH |
 
-| Output | Description |
-|--------|-------------|
-| `LOCK_OUT` | Activates when both entropy and ML trigger pass threshold |
-| `FLUSH_OUT` | Activates under moderate entropy or early hazard detection |
+### Outputs:
+- `fsm_state [1:0]` — Current FSM control output to pipeline.
+- `entropy_log_out [7:0]` — Snapshot of entropy at each transition (for debug/monitoring).
 
-## 📈 Simulation Output
+---
 
-![Simulation Graph](./waveform_output.png)
+## 🔬 System Logic Flow
 
-- `LOCK_OUT` triggers post-entropy ramp when ML trigger is active.
-- `FLUSH_OUT` activates slightly earlier, confirming cascade override logic.
+```verilog
+Priority: analog_lock_override > analog_flush_override > analog_entropy_severity > ML prediction > digital hazard
+```
 
-## 📂 Files
+### Example Behavior:
 
-| File | Description |
-|------|-------------|
-| `3_input_analog_entropy_override.asc` | Main LTSpice circuit schematic |
-| `README.md` | Project summary |
-| `LTSpice_Analog_Override_Report.docx` | Full write-up with expected behavior |
-| `waveform_output.png` | Simulation waveform image |
+- If `analog_lock_override = 1`, system immediately enters `STATE_LOCK`.
+- If `analog_flush_override = 1`, system overrides ML and flushes.
+- If `analog_entropy_severity = 2'b10`, flushes pipeline preemptively.
+- If ML says OK but entropy is high → STALL.
+- If no threats detected → remain in `STATE_OK`.
 
-## 🧪 Usage
+---
 
-Open the `.asc` file in LTSpice and run a transient analysis (1ms) to observe `FLUSH_OUT` and `LOCK_OUT` response behavior based on entropy and ML trigger thresholds.
+## 🛠️ Deployment
 
-## 🚀 Relevance
+### Simulation Tools:
+- `Quartus Prime` (Intel FPGA Toolchain)
+- `ModelSim` (Verilog simulation)
+- `LTSpice` (Analog entropy simulation with comparators, voltage triggers, entropy noise)
 
-This simulation prototype complements our Verilog-based FSM pipeline controller and provides analog fallback logic for catastrophic state recovery — ideal for hardware-augmented AI systems.
+### Integration:
+- FSM interfaces with analog signals via logic-level digital pins (`LOCK_OUT`, `FLUSH_OUT`, `N_entropy_out` → encoded).
+- Can be deployed on Cyclone IV FPGA or similar.
 
+---
+
+## 📁 Project Structure
+
+```
+/verilog/fsm_entropy_overlay.v              # Full FSM logic
+/ltspice/analog_entropy_override.asc        # 3-input analog controller circuit
+/ltspice/sim_output.png                     # Analog waveform graphs
+/docs/fsm_analog_integration_writeup.docx   # Full theory explanation + interface diagrams
+/gui/entropy_viewer.py                      # Entropy log GUI (tkinter)
+```
+
+---
+
+## 🔍 Future Extensions
+
+- Add **auto-scaling thresholds** based on pipeline performance metrics.
+- Extend analog override to support **LOCK escalation on entropy + noise combo**.
+- Publish this as **Paper 5**: "Hybrid Analog–Digital Control for Entropy-Aware Pipeline Architectures"
+
+---
 
