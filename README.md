@@ -65,18 +65,6 @@ Priority: analog_lock_override > analog_flush_override > analog_entropy_severity
 
 ---
 
-## 📁 Project Structure
-
-```
-/verilog/fsm_entropy_overlay.v              # Full FSM logic
-/ltspice/analog_entropy_override.asc        # 3-input analog controller circuit
-/ltspice/sim_output.png                     # Analog waveform graphs
-/docs/fsm_analog_integration_writeup.docx   # Full theory explanation + interface diagrams
-/gui/entropy_viewer.py                      # Entropy log GUI (tkinter)
-```
-
----
-
 ## 🔍 Future Extensions
 
 - Add **auto-scaling thresholds** based on pipeline performance metrics.
