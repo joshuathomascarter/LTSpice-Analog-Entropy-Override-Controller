@@ -72,4 +72,7 @@ Priority: analog_lock_override > analog_flush_override > analog_entropy_severity
 - Publish this as **Paper 5**: "Hybrid Analog–Digital Control for Entropy-Aware Pipeline Architectures"
 
 ---
+📬 Want to collaborate?  
+I'm looking for lab/startup partners for Fall 2025.  
+Reach out via [LinkedIn](https://www.linkedin.com/in/joshua-carter-898868356/) or [joshuathomascarter@gmail.com](mai
 
